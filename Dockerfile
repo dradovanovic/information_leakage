@@ -1,29 +1,28 @@
-# Use TensorFlow GPU image as the base
-FROM tensorflow/tensorflow:latest-gpu
+# PyTorch image for the leakage experiments.
+#   CPU (laptop):  docker compose build leakage
+#   GPU (CUDA):    docker compose --profile gpu build leakage-gpu
+FROM python:3.11-slim
 
-# Add a description label
-LABEL description="Tensorflow GPU Container for Subliminal Learning"
+LABEL description="Subliminal learning leakage experiments (PyTorch)"
 
-# Set the working directory in the container
+ARG TORCH_VERSION=2.9.1
+# cpu | cu126 | cu128 ... (PyTorch wheel index)
+ARG TORCH_VARIANT=cpu
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    MPLBACKEND=Agg
+
 WORKDIR /app
 
-# Upgrade pip and setuptools
-RUN python -m pip install --no-cache-dir --upgrade pip setuptools
+RUN pip install --upgrade pip \
+ && pip install torch==${TORCH_VERSION} --index-url https://download.pytorch.org/whl/${TORCH_VARIANT}
 
-# Force reinstall blinker to avoid distutils issues
-RUN pip install --upgrade --no-cache-dir --force-reinstall --ignore-installed blinker
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-# Install TensorFlow with CUDA support
-RUN pip --no-cache-dir install tensorflow[and-cuda]
+# The repository is mounted at /app by docker compose, so code, data/ and results/ stay on the host.
+COPY . /app
 
-# Install required Python libraries
-RUN pip install --no-cache-dir pandas matplotlib scikit_learn tables seaborn xlrd plotly
-
-# Copy the application files into the container
-ADD . /app
-
-# Set the environment variable for production mode
-ENV DASH_DEBUG_MODE=False
-
-# Expose the port for the application
-EXPOSE 8050
+CMD ["python", "run_leakage.py", "--help"]

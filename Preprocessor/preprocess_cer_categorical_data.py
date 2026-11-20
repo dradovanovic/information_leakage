@@ -73,13 +73,14 @@ def select_and_rename_question_columns(df: pd.DataFrame, target_columns: dict) -
 
 def normalize_socio_data(df: pd.DataFrame) -> pd.DataFrame:
     df['gender'] = pd.to_numeric(df['gender'], errors='coerce')
-    df['gender'] = df['gender'].apply(lambda x: 0 if x==1 else 1)
+    # Missing answers must stay -1 so that they are filtered out later (NaN == x is always False)
+    df['gender'] = df['gender'].apply(lambda x: -1 if pd.isna(x) else 0 if x == 1 else 1)
 
     df["age_class"] = df["age_class"].apply(lambda x: 0 if x in (1, 2) else 1 if x in (3, 4, 5) else 2 if x == 6 else -1)
 
     df['employment_category'] = pd.to_numeric(df['employment_category'], errors='coerce')
-    df['retired'] = df['employment_category'].apply(lambda x: 1 if x==6 else 0)
-    df['employment_status'] = df["employment_category"].apply(lambda x: 1 if x in (1, 2, 3) else 0)
+    df['retired'] = df['employment_category'].apply(lambda x: -1 if pd.isna(x) else 1 if x == 6 else 0)
+    df['employment_status'] = df["employment_category"].apply(lambda x: -1 if pd.isna(x) else 1 if x in (1, 2, 3) else 0)
 
     df['social_class'] = pd.to_numeric(df['social_class'], errors='coerce')
     df['social_class'] = df["social_class"].apply(lambda x: 0 if x == 1 else 1 if x in (2, 3) else 2 if x == 4 else -1)
@@ -89,7 +90,7 @@ def normalize_socio_data(df: pd.DataFrame) -> pd.DataFrame:
     df["income"] = df["income"].apply(lambda x: 0 if x in (1, 2, 3) else 1 if x in (4, 5) else -1)
 
     df['family_status'] = pd.to_numeric(df['family_status'], errors='coerce')
-    df['single'] = df['family_status'].apply(lambda x: 1 if x==1 else 0)
+    df['single'] = df['family_status'].apply(lambda x: -1 if pd.isna(x) else 1 if x == 1 else 0)
 
     # number of residents
     df["num_residents"] = np.nan
@@ -111,10 +112,10 @@ def normalize_socio_data(df: pd.DataFrame) -> pd.DataFrame:
                                        df.loc[mask_3, "residents_under_15"].astype(int))
 
     df['num_residents'] = df['num_residents'].fillna(-1).astype(int)
-    df["family_home"] = df["num_residents"].apply(lambda x: 0 if x <= 2 else 1)
+    df["family_home"] = df["num_residents"].apply(lambda x: -1 if x < 1 else 0 if x <= 2 else 1)
 
     df['house_age'] = pd.to_numeric(df['house_age'], errors='coerce')
-    df['house_age'] =df["house_age"].apply(lambda x: -1 if x == 9999 else 0 if x <= 1980 else 1)
+    df['house_age'] = df["house_age"].apply(lambda x: -1 if pd.isna(x) or x == 9999 else 0 if x <= 1980 else 1)
 
     df['home_owned'] = pd.to_numeric(df['home_owned'], errors='coerce')
     df['home_owned'] = df['home_owned'].fillna(-1).astype(int)
@@ -143,11 +144,11 @@ def normalize_socio_data(df: pd.DataFrame) -> pd.DataFrame:
 
     df['house_type'] = pd.to_numeric(df['house_type'], errors='coerce')
     df['apartment'] = df['house_type'].fillna(-1).astype(int)
-    df['apartment'] = df['apartment'].apply(lambda x: 1 if x==1 else 0)
-    df['split_house'] = df['house_type'].apply(lambda x: 1 if x==2 else 0)
+    df['apartment'] = df['apartment'].apply(lambda x: -1 if x == -1 else 1 if x == 1 else 0)
+    df['split_house'] = df['house_type'].apply(lambda x: -1 if pd.isna(x) else 1 if x == 2 else 0)
 
     df['electric_cooking'] = pd.to_numeric(df['electric_cooking'], errors='coerce')
-    df['electric_cooking'] = df['electric_cooking'].apply(lambda x: 1 if x==1 else 0)
+    df['electric_cooking'] = df['electric_cooking'].apply(lambda x: -1 if pd.isna(x) else 1 if x == 1 else 0)
 
     df['unoccupied_under_15'] = pd.to_numeric(df['unoccupied_under_15'], errors='coerce')
     df['unoccupied_under_15'] = df['unoccupied_under_15'].fillna(-1).astype(int)

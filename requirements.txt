@@ -1,0 +1,7 @@
+# PyTorch itself is installed in the Dockerfile (CPU or CUDA wheel).
+numpy
+pandas
+scikit-learn
+matplotlib
+tables
+h5py

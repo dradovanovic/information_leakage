@@ -1,0 +1,8 @@
+# Installed inside the Docker image (see Dockerfile). torch itself is installed in the Dockerfile
+# from the PyTorch wheel index chosen by the TORCH_INDEX_URL build argument (CPU or CUDA).
+numpy
+pandas
+scikit-learn
+matplotlib
+tables
+h5py

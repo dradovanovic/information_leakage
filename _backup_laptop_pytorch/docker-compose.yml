@@ -1,0 +1,34 @@
+# Usage (from the repo root):
+#   docker compose build leakage
+#   docker compose run --rm leakage python run_leakage.py --synthetic --seeds 2
+#   docker compose --profile gpu run --rm leakage-gpu python run_leakage.py ...   (CUDA machine)
+# The repo (code, data/, results/) is mounted at /app; results are written to ./results on the host.
+services:
+  leakage:
+    build:
+      context: .
+      args:
+        TORCH_INDEX_URL: https://download.pytorch.org/whl/cpu
+    image: information-leakage:cpu
+    volumes:
+      - .:/app
+    working_dir: /app
+
+  leakage-gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      args:
+        TORCH_INDEX_URL: https://download.pytorch.org/whl/cu128
+    image: information-leakage:gpu
+    volumes:
+      - .:/app
+    working_dir: /app
+    shm_size: "8gb"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

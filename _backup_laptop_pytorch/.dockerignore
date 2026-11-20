@@ -1,0 +1,12 @@
+.git
+.env
+.venv
+.idea/
+.vscode/
+__pycache__/
+node_modules/
+data/
+results/
+outputs/
+extracted_features/
+.cache/

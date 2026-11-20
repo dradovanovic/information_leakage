@@ -1,24 +1,32 @@
+# CPU:  docker compose run --rm leakage python run_leakage.py --synthetic --seeds 2
+# GPU:  docker compose --profile gpu run --rm leakage-gpu python run_leakage.py ...
 services:
-  subliminal_learning:
+  leakage:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: subliminal_learning
-    ports:
-      - "8050:8050"
+      args:
+        TORCH_VARIANT: cpu
+    image: information-leakage:cpu
     volumes:
       - .:/app
     working_dir: /app
-    environment:
-      - DASH_DEBUG_MODE=True
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - TF_CPP_MIN_LOG_LEVEL=2  # Suppress verbose TensorFlow logs
-    runtime: nvidia
+    shm_size: "2gb"
+
+  leakage-gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      args:
+        TORCH_VARIANT: cu128
+    image: information-leakage:gpu
+    volumes:
+      - .:/app
+    working_dir: /app
+    shm_size: "8gb"
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               capabilities: [gpu]
